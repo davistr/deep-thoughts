@@ -1,25 +1,28 @@
 import React from "react";
 import { Navigate, useParams } from "react-router-dom";
+
+import ThoughtForm from "../components/ThoughtForm";
 import ThoughtList from "../components/ThoughtList";
 import FriendList from "../components/FriendList";
+
 import { useQuery, useMutation } from "@apollo/client";
+import { QUERY_USER, QUERY_ME } from "../utils/queries";
 import { ADD_FRIEND } from "../utils/mutations";
-import { QUERY_USER } from "../utils/queries";
 import Auth from "../utils/auth";
-import ThoughtForm from "../components/ThoughtForm";
 
 const Profile = (props) => {
   const { username: userParam } = useParams();
+
   const [addFriend] = useMutation(ADD_FRIEND);
-  const { loading, data } = useQuery(QUERY_USER, {
+  const { loading, data } = useQuery(userParam ? QUERY_USER : QUERY_ME, {
     variables: { username: userParam },
   });
 
-  const user = data?.user || {};
+  const user = data?.me || data?.user || {};
 
-  // navigate to personal profile page if username is the logged-in user's
+  // navigate to personal profile page if username is yours
   if (Auth.loggedIn() && Auth.getProfile().data.username === userParam) {
-    return <Navigate to="/profile" />;
+    return <Navigate to="/profile:username" />;
   }
 
   if (loading) {
@@ -29,8 +32,8 @@ const Profile = (props) => {
   if (!user?.username) {
     return (
       <h4>
-        You need to be logged in to see this page. Use the navigation links
-        above to sign up or log in!
+        You need to be logged in to see this. Use the navigation links above to
+        sign up or log in!
       </h4>
     );
   }
